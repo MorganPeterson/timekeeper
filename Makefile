@@ -1,6 +1,13 @@
-CC := gcc
+CC := cc
+
+PREFIX ?= /usr/local
+BINDIR ?= $(PREFIX)/bin
+MANDIR ?= $(PREFIX)/share/man
+MAN1DIR ?= $(MANDIR)/man1
+MAN5DIR ?= $(MANDIR)/man5
+
 BIN := timekeeper
-SRC := timekeeper.c
+SRC := src/timekeeper.c
 
 WARN := -Wall -Wextra -Werror
 STD := -std=c11
@@ -34,7 +41,11 @@ clean:
 	rm -f $(BIN)
 
 install: $(BIN)
-	install -Dm755 $(BIN) /usr/local/bin/$(BIN)
+	install -Dm755 $(BIN) "$(BINDIR)/$(BIN)"
+	install -Dm644 man/timekeeper.1 "$(MAN1DIR)/timekeeper.1"
+	install -Dm644 man/timekeeper-config.5 "$(MAN5DIR)/timekeeper-config.5"
 
 uninstall:
 	rm -f /usr/local/bin/$(BIN)
+	rm -f "$(MAN1DIR)/timekeeper.1"
+	rm -f "$(MAN5DIR)/timekeeper-config.5"

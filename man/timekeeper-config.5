@@ -1,0 +1,94 @@
+.TH TIMEKEEPER-CONFIG 5 "June 2026" "timekeeper 1.0" "File Formats"
+.SH NAME
+timekeeper-config \- configuration file format for timekeeper
+.SH SYNOPSIS
+.B $XDG_CONFIG_HOME/timekeeper/config
+.PP
+.B ~/.config/timekeeper/config
+.SH DESCRIPTION
+.B timekeeper
+can use a configuration file to set a default custom epoch for Arvelie date
+encoding and decoding.
+.PP
+The epoch is the Gregorian date that begins Arvelie year
+.BR 0000 .
+When an epoch is configured, date commands use that epoch unless overridden by
+the command line or disabled with
+.BR --no-epoch .
+.SH FILE LOCATION
+.B timekeeper
+checks for config files in this order:
+.IP 1. 4
+.B $XDG_CONFIG_HOME/timekeeper/config
+.IP 2. 4
+.B ~/.config/timekeeper/config
+.PP
+The first available config file is used, unless overridden by an environment
+variable or command-line option.
+.SH FORMAT
+The config file uses a simple key-value format:
+.PP
+.RS
+epoch=YYYY-MM-DD
+.RE
+.PP
+Example:
+.PP
+.RS
+epoch=1990-05-12
+.RE
+.SH KEYS
+.TP
+.B epoch
+Sets the default custom epoch date. The value must be a valid Gregorian date in
+the form
+.IR YYYY-MM-DD .
+.SH EXAMPLES
+Create a config file:
+.PP
+.RS
+mkdir -p ~/.config/timekeeper
+.br
+printf "epoch=1990-05-12\\n" > ~/.config/timekeeper/config
+.RE
+.PP
+Then run:
+.PP
+.RS
+timekeeper encode-date 1990-05-12
+.br
+0000A01
+.RE
+.PP
+Disable the configured epoch for a single command:
+.PP
+.RS
+timekeeper --no-epoch encode-date 1990-05-12
+.br
+1990J06
+.RE
+.SH OVERRIDES
+Epoch source priority is:
+.IP 1. 4
+Command-line option:
+.B --epoch
+.I YYYY-MM-DD
+or
+.BI --epoch= YYYY-MM-DD
+.IP 2. 4
+Environment variable:
+.B ARVELIE_EPOCH
+.IP 3. 4
+.B $XDG_CONFIG_HOME/timekeeper/config
+.IP 4. 4
+.B ~/.config/timekeeper/config
+.PP
+Command-line values override environment variables and config files.
+.SH ENVIRONMENT
+.TP
+.B ARVELIE_EPOCH
+Sets the default epoch without using a config file.
+.SH SEE ALSO
+.BR timekeeper (1)
+.SH AUTHOR
+Written for the timekeeper project.

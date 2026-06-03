@@ -1,0 +1,274 @@
+.TH TIMEKEEPER 1 "June 2026" "timekeeper 1.0" "User Commands"
+.SH NAME
+timekeeper \- encode and decode Arvelie dates and Neralie time
+.SH SYNOPSIS
+.B timekeeper
+[\fB--epoch\fR \fIYYYY-MM-DD\fR]
+\fBencode-date\fR
+\fIYYYY-M-D\fR
+.PP
+.B timekeeper
+[\fB--epoch\fR \fIYYYY-MM-DD\fR]
+\fBdecode-date\fR
+\fIYYYY[A-Z|+]DD\fR
+.PP
+.B timekeeper
+\fBencode-time\fR
+\fIHH:MM:SS\fR
+.PP
+.B timekeeper
+\fBdecode-time\fR
+\fIBBB:PPP\fR
+.PP
+.B timekeeper
+\fB--no-epoch\fR
+\fBencode-date\fR
+\fIYYYY-M-D\fR
+.SH DESCRIPTION
+.B timekeeper
+is a small command-line utility for converting between Gregorian dates,
+Arvelie dates, standard clock time, and Neralie time.
+.PP
+Arvelie dates divide the year into 26 months of 14 days each. The months are
+represented by the letters A through Z. The final extra day of a common year is
+represented as
+.BR +00 .
+The final extra day of a leap year is represented as
+.BR +01 .
+.PP
+Neralie time divides the day into 1000 beats. Each beat is divided into 1000
+pulses. A Neralie time is written as
+.BR BBB:PPP .
+.PP
+.B timekeeper
+also supports an optional custom epoch. When an epoch is configured, Arvelie
+year
+.B 0000
+starts on the configured epoch date.
+.SH COMMANDS
+.TP
+.B encode-date \fIYYYY-M-D\fR
+Convert a Gregorian date to an Arvelie date.
+.TP
+.B decode-date \fIYYYY[A-Z|+]DD\fR
+Convert an Arvelie date to a Gregorian date.
+.TP
+.B encode-time \fIHH:MM:SS\fR
+Convert standard 24-hour time to Neralie time.
+.TP
+.B decode-time \fIBBB:PPP\fR
+Convert Neralie time to standard 24-hour time.
+.SH OPTIONS
+.TP
+.BI --epoch " YYYY-MM-DD"
+Use a custom year-zero date for this command.
+.TP
+.BI --epoch= YYYY-MM-DD
+Same as
+.BR --epoch " " YYYY-MM-DD .
+.TP
+.B --no-epoch
+Disable any configured epoch for this command. This is useful when an epoch is
+set in the environment or config file, but the user wants normal Gregorian-year
+Arvelie conversion for one command.
+.SH DATE FORMAT
+A normal Arvelie date has the form:
+.PP
+.RS
+\fIYYYYMDD\fR
+.RE
+.PP
+where
+.I YYYY
+is the Arvelie year,
+.I M
+is one of
+.B A
+through
+.BR Z ,
+and
+.I DD
+is the day within that 14-day month.
+.PP
+Examples:
+.PP
+.RS
+2024A01
+.br
+2024B04
+.br
+2024Z14
+.RE
+.PP
+The end-of-year overflow day is written with
+.BR + :
+.PP
+.RS
+2023+00
+.br
+2024+01
+.RE
+.SH TIME FORMAT
+A Neralie time has the form:
+.PP
+.RS
+\fIBBB:PPP\fR
+.RE
+.PP
+where
+.I BBB
+is the beat, from 000 to 999, and
+.I PPP
+is the pulse, from 000 to 999.
+.SH EPOCHS
+The epoch controls the date that begins Arvelie year
+.BR 0000 .
+For example:
+.PP
+.RS
+timekeeper --epoch 1990-05-12 encode-date 1990-05-12
+.br
+0000A01
+.RE
+.PP
+The same epoch must be used when decoding an epoch-based Arvelie date:
+.PP
+.RS
+timekeeper --epoch 1990-05-12 decode-date 0000A01
+.br
+1990-05-12
+.RE
+.PP
+If a different epoch is used during decoding, the resulting Gregorian date will
+be different.
+.SH EPOCH SOURCE PRIORITY
+Epoch configuration is loaded in this order:
+.IP 1. 4
+Command-line option:
+.B --epoch
+.I YYYY-MM-DD
+or
+.BI --epoch= YYYY-MM-DD
+.IP 2. 4
+Environment variable:
+.B ARVELIE_EPOCH
+.IP 3. 4
+Config file:
+.B $XDG_CONFIG_HOME/timekeeper/config
+.IP 4. 4
+Config file:
+.B ~/.config/timekeeper/config
+.PP
+The command-line option has the highest priority.
+.SH CONFIGURATION
+The config file uses a simple key-value format:
+.PP
+.RS
+epoch=1990-05-12
+.RE
+.PP
+See
+.BR timekeeper-config (5)
+for more detail.
+.SH EXAMPLES
+.TP
+Encode a Gregorian date:
+.B timekeeper encode-date 2024-1-18
+.PP
+.RS
+2024B04
+.RE
+.TP
+Decode an Arvelie date:
+.B timekeeper decode-date 2024B04
+.PP
+.RS
+2024-01-18
+.RE
+.TP
+Encode midnight:
+.B timekeeper encode-time 00:00:00
+.PP
+.RS
+000:000
+.RE
+.TP
+Encode 6 AM:
+.B timekeeper encode-time 06:00:00
+.PP
+.RS
+250:000
+.RE
+.TP
+Decode Neralie noon:
+.B timekeeper decode-time 500:000
+.PP
+.RS
+12:00:00
+.RE
+.TP
+Use a one-off epoch:
+.B timekeeper --epoch 1990-05-12 encode-date 1990-05-12
+.PP
+.RS
+0000A01
+.RE
+.TP
+Disable configured epoch for one command:
+.B timekeeper --no-epoch encode-date 1990-05-12
+.PP
+.RS
+1990J06
+.RE
+.SH EXIT STATUS
+.TP
+.B 0
+Success.
+.TP
+.B 1
+Invalid arguments, invalid input, or failed conversion.
+.SH FILES
+.TP
+.B $XDG_CONFIG_HOME/timekeeper/config
+User config file when
+.B XDG_CONFIG_HOME
+is set.
+.TP
+.B ~/.config/timekeeper/config
+Fallback user config file.
+.SH ENVIRONMENT
+.TP
+.B ARVELIE_EPOCH
+Sets the default custom epoch date. The expected format is
+.IR YYYY-MM-DD .
+.SH INSTALLATION
+After building
+.BR timekeeper ,
+install the binary system-wide with:
+.PP
+.RS
+sudo install -Dm755 timekeeper /usr/local/bin/timekeeper
+.RE
+.PP
+Install this man page system-wide with:
+.PP
+.RS
+sudo install -Dm644 timekeeper.1 /usr/local/share/man/man1/timekeeper.1
+.br
+sudo mandb
+.RE
+.PP
+For a user-local install:
+.PP
+.RS
+mkdir -p ~/.local/bin ~/.local/share/man/man1
+.br
+install -Dm755 timekeeper ~/.local/bin/timekeeper
+.br
+install -Dm644 timekeeper.1 ~/.local/share/man/man1/timekeeper.1
+.RE
+.SH SEE ALSO
+.BR timekeeper-config (5),
+.BR date (1)
+.SH AUTHOR
+Written for the timekeeper project.
